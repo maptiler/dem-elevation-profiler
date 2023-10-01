@@ -1,8 +1,8 @@
 import tileCover from './tileCover'
 import getElevation from './getElevation'
-import { distance, mToFeet } from './util'
+import { pointDistance, mToFt } from './util'
 
-import type { Coordinates, Tile } from './tileCover'
+import type { TileCoverCoordinates, TileID } from './tileCover'
 import type { ElevationParser } from './getElevation'
 import type { Feature, LineString } from 'geojson'
 
@@ -15,10 +15,14 @@ export interface TileImage {
   image: Uint8ClampedArray
 }
 
-export type TileRequest = (x: number, y: number, z: number) => Promise<TileImage>
+export type TileRequest = (
+  x: number,
+  y: number,
+  z: number,
+) => Promise<TileImage>
 
 export interface Options {
-  /** type of metric to use. Meters or Feet. Default: meters */
+  /** type of metric to use. Meters or feet. Default: meters */
   metric?: 'm' | 'ft'
   /** Zoom that is queried from the server. Default: 13 */
   zoom?: number
@@ -38,7 +42,7 @@ export interface ElevPoint {
   /** Coordinates of the point in lat-lon */
   coordinate: [lon: number, lat: number]
   /** Tile that the point is in */
-  tile: Tile
+  tile: TileID
 }
 
 export interface Output {
@@ -62,17 +66,27 @@ export interface Output {
  * Given a GeoJSON LineString or Feature<Linestring>, return the elevation data for the path.
  * This algorithm will automatically break the path into denser segments relative to the zoom level if necessary.
  */
-export default async function profile (
+export default async function profileLineString (
   path: Feature<LineString> | LineString,
   options: Options
 ): Promise<Output> {
   // get the tile cover
-  const coordinates = ('geometry' in path) ? path.geometry.coordinates : path.coordinates
-  const { coords, tiles } = tileCover(coordinates, options.zoom ?? 13, options.tileSize ?? 512)
+  const coordinates =
+    'geometry' in path ? path.geometry.coordinates : path.coordinates
+  const { coords, tiles } = tileCover(
+    coordinates,
+    options.zoom ?? 13,
+    options.tileSize ?? 512
+  )
   // get tiles
   const tileCache = await getTiles(tiles, options.tileRequest)
   // get the elevation data
-  const points = getElevations(coords, tileCache, options.tileSize ?? 512, options.elevationParser)
+  const points = getElevations(
+    coords,
+    tileCache,
+    options.tileSize ?? 512,
+    options.elevationParser
+  )
   // calculate the output
   let output = buildOutput(points)
   // convert to miles if needed
@@ -83,7 +97,7 @@ export default async function profile (
 
 /** Request all the tiles we need */
 async function getTiles (
-  tiles: Tile[],
+  tiles: TileID[],
   tileRequest: TileRequest
 ): Promise<Map<number, TileImage>> {
   const tileCache = new Map<number, TileImage>()
@@ -111,7 +125,7 @@ async function getTiles (
 
 /** Get the elevation data for each coordinate */
 function getElevations (
-  coords: Coordinates[],
+  coords: TileCoverCoordinates[],
   tileCache: Map<number, TileImage>,
   tileSize: number,
   elevationParser?: ElevationParser
@@ -123,8 +137,18 @@ function getElevations (
   let prevCoord: [lon: number, lat: number] | undefined
   for (const { tile, coordinate } of coords) {
     const cTile = tileCache.get(tile.id)
-    if (cTile === undefined) throw new Error(`Missing tile ${tile.id}: ${tile.x}-${tile.y}-${tile.z}`)
-    const elevation = getElevation(coordinate, [tile.z, tile.x, tile.y], tileSize, cTile, elevationParser)
+    if (cTile === undefined) {
+      throw new Error(
+        `Missing tile ${tile.id} (${tile.x}-${tile.y}-${tile.z})`
+      )
+    }
+    const elevation = getElevation(
+      coordinate,
+      [tile.z, tile.x, tile.y],
+      tileSize,
+      cTile,
+      elevationParser
+    )
     points.push({
       distance: curDistance,
       elevation,
@@ -132,7 +156,9 @@ function getElevations (
       tile
     })
     // calculate the distance between the points
-    if (prevCoord !== undefined) curDistance += distance(prevCoord, coordinate)
+    if (prevCoord !== undefined) {
+      curDistance += pointDistance(prevCoord, coordinate)
+    }
     prevCoord = coordinate
   }
 
@@ -166,15 +192,15 @@ function buildOutput (points: ElevPoint[]): Output {
 /** Convert all output properties from km to miles */
 function toFeet (input: Output): Output {
   const output: Output = {
-    distance: mToFeet(input.distance),
-    minElevation: mToFeet(input.minElevation),
-    maxElevation: mToFeet(input.maxElevation),
-    avgElevation: mToFeet(input.avgElevation),
-    startElevation: mToFeet(input.startElevation),
-    endElevation: mToFeet(input.endElevation),
+    distance: mToFt(input.distance),
+    minElevation: mToFt(input.minElevation),
+    maxElevation: mToFt(input.maxElevation),
+    avgElevation: mToFt(input.avgElevation),
+    startElevation: mToFt(input.startElevation),
+    endElevation: mToFt(input.endElevation),
     points: input.points.map((point) => ({
-      distance: mToFeet(point.distance),
-      elevation: mToFeet(point.elevation),
+      distance: mToFt(point.distance),
+      elevation: mToFt(point.elevation),
       coordinate: point.coordinate,
       tile: point.tile
     }))

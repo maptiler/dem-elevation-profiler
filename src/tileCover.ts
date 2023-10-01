@@ -1,39 +1,43 @@
 import { llToTile } from 'web-merc-projection'
-import { distance, getZoomLevelResolution, xyzToTileID } from './util'
+import {
+  pointDistance,
+  getZoomLevelResolution,
+  xyzToTileID
+} from './util'
 
 import type { Point } from 'web-merc-projection'
 
-export interface Tile {
+export interface TileID {
   id: number
   x: number
   y: number
   z: number
 }
 
-export interface Coordinates {
+export interface TileCoverCoordinates {
   /** Store the coordinates as an ll-pair */
   coordinate: Point
   /** Track the tile relative to the point */
-  tile: Tile
+  tile: TileID
 }
 
-export interface Output {
-  coords: Coordinates[]
-  tiles: Tile[]
+export interface TileCoverOutput {
+  coords: TileCoverCoordinates[]
+  tiles: TileID[]
 }
 
 /**
  * Given LineString coordinates, return the web mercator tiles that all the points contain.
  * Breaks the coordinates down into points that are relative to the zoom.
-*/
+ */
 export default function tileCover (
   coordinates: GeoJSON.Position[],
   zoom: number,
   tileSize: number
-): Output {
-  const tileHash = new Map<number, Tile>() // tileHash => { id, x, y, z }
-  const tiles: Tile[] = []
-  const coords: Coordinates[] = []
+): TileCoverOutput {
+  const tileHash = new Map<number, TileID>() // tileHash => { id, x, y, z }
+  const tiles: TileID[] = []
+  const coords: TileCoverCoordinates[] = []
 
   // get the resolution of the zoom level
   const resolution = getZoomLevelResolution(coordinates[0][1], zoom)
@@ -42,12 +46,12 @@ export default function tileCover (
   const samples = sampleProfileLine(coordinates, resolution)
 
   for (const sample of samples) {
-    const coordinate = sample as unknown as [number, number]
+    const coordinate = sample as unknown as [lon: number, lat: number]
     // file the file that the coordinate is in
     const [tileX, tileY] = llToTile(coordinate, zoom, tileSize)
     // create the tile and store it
     const id = xyzToTileID(tileX, tileY, zoom)
-    const tile: Tile = { id, x: tileX, y: tileY, z: zoom }
+    const tile: TileID = { id, x: tileX, y: tileY, z: zoom }
     tileHash.set(id, tile)
     // store the coordinates
     coords.push({ coordinate, tile })
@@ -59,13 +63,19 @@ export default function tileCover (
 }
 
 /** convert coordinates to samples that have a max distance of the zoom level resolution */
-function sampleProfileLine (coordinates: GeoJSON.Position[], resolution: number): GeoJSON.Position[] {
+function sampleProfileLine (
+  coordinates: GeoJSON.Position[],
+  resolution: number
+): GeoJSON.Position[] {
   const samples: GeoJSON.Position[] = []
 
   let prevCoord: GeoJSON.Position | undefined
   for (const coord of coordinates) {
     if (prevCoord !== undefined) {
-      const dist = distance(prevCoord as unknown as [number, number], coord as unknown as [number, number])
+      const dist = pointDistance(
+        prevCoord as unknown as [lon: number, lat: number],
+        coord as unknown as [lon: number, lat: number]
+      )
       const numSamples = Math.ceil(dist / resolution)
 
       for (let i = 0; i <= numSamples; i++) {

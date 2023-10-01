@@ -2,7 +2,12 @@ import { llToTilePx } from 'web-merc-projection'
 
 import type { TileImage } from './'
 
-export type ElevationParser = (r: number, g: number, b: number, a: number) => number
+export type ElevationParser = (
+  r: number,
+  g: number,
+  b: number,
+  a: number,
+) => number
 
 /** Given an RGB or RBGA image and lon-lat coordinate, determine the elevation */
 export default function getElevation (
@@ -18,7 +23,12 @@ export default function getElevation (
   y = clampPixel(y, tileSize)
   const index = (y * tileSize + x) * channels
 
-  return elevationParser(image[index], image[index + 1], image[index + 2], channels === 4 ? image[index + 3] : 0)
+  return elevationParser(
+    image[index],
+    image[index + 1],
+    image[index + 2],
+    channels === 4 ? image[index + 3] : 0
+  )
 }
 
 /** Clamp the pixels to the 0-tileSize bounds */
@@ -30,8 +40,7 @@ function clampPixel (n: number, tileSize: number): number {
 export function defaultElevationParser (
   r: number,
   g: number,
-  b: number,
-  _a: number
+  b: number
 ): number {
-  return -10000 + ((r * 256 * 256 + g * 256 + b) * 0.1)
+  return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1
 }

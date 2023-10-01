@@ -1,11 +1,4 @@
-# dem-elevation-profiler [![npm][npm-image]][npm-url] [![downloads][downloads-image]][downloads-url] [![bundlephobia][bundlephobia-image]][bundlephobia-url] [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-
-[npm-image]: https://img.shields.io/npm/v/dem-elevation-profiler.svg
-[npm-url]: https://npmjs.org/package/dem-elevation-profiler
-[bundlephobia-image]: https://img.shields.io/bundlephobia/minzip/dem-elevation-profiler.svg
-[bundlephobia-url]: https://bundlephobia.com/package/dem-elevation-profiler
-[downloads-image]: https://img.shields.io/npm/dm/dem-elevation-profiler.svg
-[downloads-url]: https://www.npmjs.com/package/dem-elevation-profiler
+# dem-elevation-profiler
 
 ## About
 
