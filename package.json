@@ -1,0 +1,74 @@
+{
+  "name": "dem-elevation-profiler",
+  "version": "0.1.1",
+  "description": "Convert a geojson LineString to a elevation profile.",
+  "type": "module",
+  "keywords": [
+    "web",
+    "mercator",
+    "projection",
+    "dem",
+    "terrain",
+    "profiler",
+    "bun"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./getElevation": "./dist/getElevation.js",
+    "./tileCover": "./dist/tileCover.js",
+    "./util": "./dist/util.js"
+  },
+  "directories": {
+    "lib": "dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typescript": {
+    "main": "src/index.ts",
+    "types": "dist/index.d.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "cd node_modules/sharp && bun run install",
+    "lint+test+build": "bun run lint && bun run test && bun run build && bun run types:bundle",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "build": "rm -rf dist && mkdir dist && bun build.ts",
+    "types:bundle": "tsc --project tsconfig.build.json",
+    "prepare": "bun run lint+test+build",
+    "package-check": "package-check",
+    "test": "bun test",
+    "test:dev": "bun test --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maptiler/dem-elevation-profiler.git"
+  },
+  "author": "Craig OConnor",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maptiler/dem-elevation-profiler/issues"
+  },
+  "homepage": "https://github.com/maptiler/dem-elevation-profiler#readme",
+  "devDependencies": {
+    "@skypack/package-check": "^0.2.2",
+    "@types/geojson": "^7946.0.10",
+    "@typescript-eslint/parser": "latest",
+    "bun-types": "^0.8.1",
+    "es-abstract": "^1.21.2",
+    "eslint": "^8.44.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-config-standard-with-typescript": "^36.0.0",
+    "sharp": "^0.32.6",
+    "ts-standard": "*",
+    "typescript": "latest"
+  },
+  "trustedDependencies": [
+    "sharp"
+  ],
+  "dependencies": {
+    "web-merc-projection": "^1.3.2"
+  }
+}
