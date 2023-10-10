@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import profile from '../src/index'
+import { profileLineString } from '../src/index'
 import sharp from 'sharp'
 
 describe('profile', () => {
@@ -55,11 +55,11 @@ describe('profile', () => {
       }
     }
 
-    expect(await profile(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple13m.json').json())
+    expect(await profileLineString(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple13m.json').json())
 
     options.metric = 'ft' as const
 
-    expect(await profile(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple13ft.json').json())
+    expect(await profileLineString(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple13ft.json').json())
   })
 
   it('simple line at zoom 14', async () => {
@@ -114,10 +114,10 @@ describe('profile', () => {
       }
     }
 
-    expect(await profile(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple14m.json').json())
+    expect(await profileLineString(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple14m.json').json())
 
     options.metric = 'ft' as const
 
-    expect(await profile(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple14ft.json').json())
+    expect(await profileLineString(path, options)).toEqual(await Bun.file('test/fixtures/profileSimple14ft.json').json())
   })
 })

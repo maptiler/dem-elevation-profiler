@@ -40,7 +40,7 @@ export default function tileCover (
   const coords: TileCoverCoordinates[] = []
 
   // get the resolution of the zoom level
-  const resolution = getZoomLevelResolution(coordinates[0][1], zoom)
+  const resolution = getZoomLevelResolution(coordinates[0][1], zoom, tileSize)
 
   // migrate from coordinates to "samples" that are relative to the zoom
   const samples = sampleProfileLine(coordinates, resolution)
@@ -70,6 +70,8 @@ function sampleProfileLine (
   const samples: GeoJSON.Position[] = []
 
   let prevCoord: GeoJSON.Position | undefined
+  // iterate through the coordinates and sample them
+  // avoid duplicating the last coordinate
   for (const coord of coordinates) {
     if (prevCoord !== undefined) {
       const dist = pointDistance(
@@ -78,7 +80,7 @@ function sampleProfileLine (
       )
       const numSamples = Math.ceil(dist / resolution)
 
-      for (let i = 0; i <= numSamples; i++) {
+      for (let i = 0; i <= numSamples - 1; i++) {
         const sample = [
           prevCoord[0] + (coord[0] - prevCoord[0]) * (i / numSamples),
           prevCoord[1] + (coord[1] - prevCoord[1]) * (i / numSamples)
